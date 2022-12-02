@@ -3,41 +3,30 @@ package com.andriybalitskyy;
 import java.math.BigDecimal;
 
 public class Sum {
-    Integer amount;
-    Double price;
-    ProductType type;
+    private final Input input;
+    private final StepCalculatable<Double> vatProvider;
+    private final StepCalculatable<BigDecimal> sumProvider;
+    private final SubTotalCalculatable<BigDecimal> freightProvider;
+    private final SubTotalCalculatable<BigDecimal> currencyExchangeProvider;
 
-    public Sum(Integer amount, Double price, ProductType type) {
-        this.amount = amount;
-        this.price = price;
-        this.type = type;
+    public Sum(Input input, StepCalculatable<Double> vatProvider, StepCalculatable<BigDecimal> sumProvider, SubTotalCalculatable<BigDecimal> freightProvider, SubTotalCalculatable<BigDecimal> currencyExchangeProvider) {
+        this.input = input;
+        this.vatProvider = vatProvider;
+        this.sumProvider = sumProvider;
+        this.freightProvider = freightProvider;
+        this.currencyExchangeProvider = currencyExchangeProvider;
     }
 
     public Result calculate() {
-        BigDecimal result = new BigDecimal(amount.toString()).multiply(new BigDecimal(price.toString()));
-        if(type == ProductType.book) {
-            BigDecimal freight = new BigDecimal(freight());
-            result = result.add(freight);
-        }
+        input.setPrice(vatProvider.calculate(input));
 
-        return new Result(result, Currency.DKK);
+        BigDecimal result = sumProvider.calculate(input);
+
+        result = freightProvider.calculate(input, result);
+
+        result = currencyExchangeProvider.calculate(input, result);
+
+        return new Result(result, input.getDefaultOutputCurrency());
     }
 
-    private int freight() {
-        int freightSum = 0;
-        int freightIterator = amount / 10;
-        if(amount%10 != 0) {
-            freightIterator++;
-        }
-
-        for (int i=0; i<freightIterator; i++) {
-            if(i == 0) {
-                freightSum += 50;
-            } else {
-                freightSum += 25;
-            }
-        }
-
-        return freightSum;
-    }
 }
