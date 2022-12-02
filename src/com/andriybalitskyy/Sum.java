@@ -13,14 +13,14 @@ public class Sum {
         this.type = type;
     }
 
-    public String calculate() {
+    public Result calculate() {
         BigDecimal result = new BigDecimal(amount.toString()).multiply(new BigDecimal(price.toString()));
         if(type == ProductType.book) {
             BigDecimal freight = new BigDecimal(freight());
             result = result.add(freight);
         }
 
-        return result + " DKK";
+        return new Result(result, Currency.DKK);
     }
 
     private int freight() {
